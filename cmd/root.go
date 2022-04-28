@@ -34,7 +34,24 @@ var team string
 var rootCmd = &cobra.Command{
 	Use:   "onboarder",
 	Short: "Bootstrap your work git repositories.",
-	Long:  `Bootstrap your work git repositories.`,
+	Long: `Onboarder will bootstrap your work git repositories.
+It will authorize to Github and use an oauth credential to create forks.
+It will generate a new ssh keypair and upload the public key to Github.
+It will clone your forks, and set upstreams appropriately for each one.
+
+There will be a pause between forking and cloning. This is to allow time
+for larger repositories to fork.
+
+IMPORTANT: You will be asked if a question during the process similar to:
+
+  The authenticity of host 'github.com (140.82.112.4)' can't be established.
+  ED25519 key fingerprint is SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU.
+  This key is not known by any other names
+  Are you sure you want to continue connecting (yes/no/[fingerprint])?
+
+You must answer yes to this question. It is adding the fingerprint to your
+known_hosts file.
+	`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
