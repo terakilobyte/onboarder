@@ -7,6 +7,7 @@ import (
 	"path"
 
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 )
 
@@ -33,7 +34,7 @@ func SetupLocalRepos(repos map[string][]string, user, outdir, keypath string) er
 			url := fmt.Sprintf("git@github.com:%s/%s.git", user, repo)
 
 			fmt.Printf("\nCloning %s/%s forked from %s\n", user, repo, org)
-			_, err = git.PlainClone(dest, false, &git.CloneOptions{
+			r, err := git.PlainClone(dest, false, &git.CloneOptions{
 				URL:      url,
 				Progress: os.Stdout,
 				Auth:     publicKeys,
@@ -41,6 +42,24 @@ func SetupLocalRepos(repos map[string][]string, user, outdir, keypath string) er
 			if err != nil {
 				log.Fatalf("clone repo %s failed %s\n", url, err.Error())
 			}
+			currentConfig, err := r.Config()
+			if err != nil {
+				log.Fatalf("get repo config %s failed %s\n", url, err.Error())
+			}
+			currentConfig.Remotes["upstream"] = &config.RemoteConfig{
+				Name:  "upstream",
+				URLs:  []string{fmt.Sprintf("git@github.com:%s/%s.git", org, repo)},
+				Fetch: []config.RefSpec{"+refs/heads/*:refs/remotes/upstream/*"},
+			}
+			var branch *config.Branch
+			if _, ok := currentConfig.Branches["main"]; ok {
+				branch = currentConfig.Branches["main"]
+			} else {
+				branch = currentConfig.Branches["master"]
+			}
+			branch.Remote = "upstream"
+
+			r.SetConfig(currentConfig)
 		}
 	}
 	return nil
