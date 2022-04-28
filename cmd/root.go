@@ -48,6 +48,18 @@ I'm also going to create an ssh key for you and add it to your github account.
 
 This may take a while (5-10 minutes) depending on how many repositories I'm
 working with. Please be patient.
+
+There will be a pause between forking and cloning. This is to allow time
+for larger repositories to fork.
+
+IMPORTANT: You will be asked if a question during the process similar to:
+
+  The authenticity of host 'github.com (140.82.112.4)' can't be established.
+  ED25519 key fingerprint is SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU.
+  This key is not known by any other names
+  Are you sure you want to continue connecting (yes/no/[fingerprint])?
+
+You must answer yes to this question.
 `)
 
 		pubkey, keypath, err := genssh.SetupSSH(*user)
@@ -55,7 +67,7 @@ working with. Please be patient.
 			log.Fatalln(err)
 		}
 		ghops.UploadKey(client, pubkey)
-		// ghops.ForkRepos(client, globals.GetReposForTeam(team))
+		ghops.ForkRepos(client, globals.GetReposForTeam(team))
 		gitops.SetupLocalRepos(globals.GetReposForTeam(team), *user, outDir, keypath)
 	},
 }
