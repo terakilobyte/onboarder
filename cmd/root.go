@@ -18,6 +18,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/terakilobyte/onboarder/genssh"
@@ -37,11 +38,6 @@ var rootCmd = &cobra.Command{
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
-		client, user, err := ghops.InitClient(ghops.AuthToGithub())
-		if err != nil {
-			log.Fatalln(err)
-		}
-		fmt.Printf("Hello, %s\n", *user)
 		fmt.Print(`
 I'm about to begin forking and cloning all of the repositories that you should need.
 I'm also going to create an ssh key for you and add it to your github account.
@@ -61,6 +57,10 @@ IMPORTANT: You will be asked if a question during the process similar to:
 
 You must answer yes to this question.
 `)
+		client, user, err := ghops.InitClient(ghops.AuthToGithub())
+		if err != nil {
+			log.Fatalln(err)
+		}
 
 		pubkey, keypath, err := genssh.SetupSSH(*user)
 		if err != nil {
@@ -68,6 +68,10 @@ You must answer yes to this question.
 		}
 		ghops.UploadKey(client, pubkey)
 		ghops.ForkRepos(client, globals.GetReposForTeam(team))
+
+		fmt.Println("Waiting 30 seconds for forks to complete...")
+		time.Sleep(30 * time.Second)
+
 		gitops.SetupLocalRepos(globals.GetReposForTeam(team), *user, outDir, keypath)
 	},
 }
