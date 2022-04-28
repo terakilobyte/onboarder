@@ -4,8 +4,6 @@ before:
   hooks:
     # You may remove this if you don't use go modules.
     - go mod tidy
-    # you may remove this if you don't need go generate
-    - go generate ./...
 builds:
   - env:
       - CGO_ENABLED=0
@@ -28,3 +26,9 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
+brews:
+- name: onboarder
+  homepage: https://github.com/terakilobyte/homebrew-tools
+  tap:
+    owner: terakilobyte
+    name: homebrew-tools
