@@ -35,9 +35,24 @@ var rootCmd = &cobra.Command{
 	Use:   "onboarder",
 	Short: "Bootstrap your work git repositories.",
 	Long: `Onboarder will bootstrap your work git repositories.
-It will authorize to Github and use an oauth credential to create forks.
-It will generate a new ssh keypair and upload the public key to Github.
-It will clone your forks, and set upstreams appropriately for each one.
+
+Onboarder is an onboarding tool built for the Docs team at MongoDB (initially).
+
+IMPORTANT
+Onboarder generates a new ssh keypair and uploads the public
+key to github for you. It will also add it to the ssh-agent, and it modifies
+your ~/.ssh/config file (creates if needed) to use the key.
+
+Run onboarder, passing in flags for the output directory where repositories
+should be cloned to, and which team you are on.
+
+Current teams are cet, and tdbx. Future versions will accept a config file
+rather than have this hardcoded in.
+
+onboarder -t tdbx -o ~/work
+
+The above will fork repos appropriate for the *tdbx* team and then clone
+them to the ~/work directory.
 
 There will be a pause between forking and cloning. This is to allow time
 for larger repositories to fork.
@@ -51,6 +66,10 @@ IMPORTANT: You will be asked if a question during the process similar to:
 
 You must answer yes to this question. It is adding the fingerprint to your
 known_hosts file.
+
+
+If you have already set up ssh keys, running this tool may be cause an error
+with your ~/.ssh/known_hosts file. Delete the file and run the tool again.
 	`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
