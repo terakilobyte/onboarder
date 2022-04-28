@@ -38,7 +38,6 @@ var rootCmd = &cobra.Command{
 
 Onboarder is an onboarding tool built for the Docs team at MongoDB (initially).
 
-IMPORTANT
 Onboarder generates a new ssh keypair and uploads the public
 key to github for you. It will also add it to the ssh-agent, and it modifies
 your ~/.ssh/config file (creates if needed) to use the key.
@@ -57,7 +56,7 @@ them to the ~/work directory.
 There will be a pause between forking and cloning. This is to allow time
 for larger repositories to fork.
 
-IMPORTANT: You will be asked if a question during the process similar to:
+IMPORTANT: You will be asked a question during the process similar to:
 
   The authenticity of host 'github.com (140.82.112.4)' can't be established.
   ED25519 key fingerprint is SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU.
@@ -92,7 +91,11 @@ IMPORTANT: You will be asked if a question during the process similar to:
   Are you sure you want to continue connecting (yes/no/[fingerprint])?
 
 You must answer yes to this question.
+
+Please acknowledge your acceptance and understanding of the above by pressing enter.
 `)
+		var acknowledge string
+		fmt.Scanln(&acknowledge)
 		client, user, err := ghops.InitClient(ghops.AuthToGithub())
 		if err != nil {
 			log.Fatalln(err)

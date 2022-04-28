@@ -79,7 +79,7 @@ func AuthToGithub() string {
 	fmt.Printf("A browser should automatically open.\n If it doesn't, "+
 		"please open the following URL in your browser to complete the "+
 		"authentication process:\n%s\n", b.VerificationUri)
-	fmt.Printf("I've copied the following code to your clipboard.\nPlease in the browser: \n\t%s\n", b.UserCode)
+	fmt.Printf("I've copied the following code to your clipboard.\nPlease paste it in the browser: \n\t%s\n", b.UserCode)
 	clipboard.WriteAll(b.UserCode)
 
 	openbrowser(b.VerificationUri)
