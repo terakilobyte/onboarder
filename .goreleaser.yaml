@@ -28,7 +28,7 @@ changelog:
       - '^test:'
 brews:
 - name: onboarder
-  homepage: https://github.com/terakilobyte/homebrew-tools
   tap:
     owner: terakilobyte
     name: homebrew-tools
+    token: ${{ secrets.GH_PAT }}
