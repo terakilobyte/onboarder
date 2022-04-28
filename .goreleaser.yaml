@@ -31,4 +31,3 @@ brews:
   tap:
     owner: terakilobyte
     name: homebrew-tools
-    token: ${{ secrets.GH_PAT }}
