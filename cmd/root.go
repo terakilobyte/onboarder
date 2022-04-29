@@ -29,6 +29,7 @@ import (
 
 var outDir string
 var team string
+var gid string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -41,6 +42,9 @@ Onboarder is an onboarding tool built for the Docs team at MongoDB (initially).
 Onboarder generates a new ssh keypair and uploads the public
 key to github for you. It will also add it to the ssh-agent, and it modifies
 your ~/.ssh/config file (creates if needed) to use the key.
+
+Onboarder also uploads your gpg key to github, and adds it to your
+your git config. Commits will be signed by default after using onboarder.
 
 Run onboarder, passing in flags for the output directory where repositories
 should be cloned to, and which team you are on.
@@ -83,7 +87,7 @@ working with. Please be patient.
 There will be a pause between forking and cloning. This is to allow time
 for larger repositories to fork.
 
-IMPORTANT: You will be asked if a question during the process similar to:
+IMPORTANT: You will be asked a question during the process similar to:
 
   The authenticity of host 'github.com (140.82.112.4)' can't be established.
   ED25519 key fingerprint is SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU.
@@ -101,17 +105,18 @@ Please acknowledge your acceptance and understanding of the above by pressing en
 			log.Fatalln(err)
 		}
 
-		pubkey, keypath, err := genssh.SetupSSH(*user)
+		sshKey, keypath, err := genssh.SetupSSH(*user)
 		if err != nil {
 			log.Fatalln(err)
 		}
-		ghops.UploadKey(client, pubkey)
+		ghops.UploadKeys(client, sshKey, gid)
 		ghops.ForkRepos(client, globals.GetReposForTeam(team))
 
 		fmt.Println("Waiting 30 seconds for forks to complete...")
 		time.Sleep(30 * time.Second)
 
 		gitops.SetupLocalRepos(globals.GetReposForTeam(team), *user, outDir, keypath)
+		gitops.ConfigSignedCommits(gid)
 	},
 }
 
@@ -124,6 +129,8 @@ func Execute() {
 func init() {
 	rootCmd.Flags().StringVarP(&outDir, "out-dir", "o", "", "output directory")
 	rootCmd.Flags().StringVarP(&team, "team", "t", "", "team name")
+	rootCmd.Flags().StringVarP(&gid, "gid", "g", "", "gpg --armor --export xxx")
 	cobra.MarkFlagRequired(rootCmd.Flags(), "out-dir")
 	cobra.MarkFlagRequired(rootCmd.Flags(), "team")
+	cobra.MarkFlagRequired(rootCmd.Flags(), "gid")
 }

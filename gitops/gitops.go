@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"path"
 
 	"github.com/go-git/go-git/v5"
@@ -63,4 +64,23 @@ func SetupLocalRepos(repos map[string][]string, user, outdir, keypath string) er
 		}
 	}
 	return nil
+}
+
+func ConfigSignedCommits(gid string) {
+	app := "git"
+	arg1 := "config"
+	arg2 := "--global"
+	arg3 := "commit.gpgsign"
+	arg4 := "true"
+
+	gitCmd := exec.Command(app, arg1, arg2, arg3, arg4)
+	gitCmd.Run()
+
+	app = "git"
+	arg1 = "config"
+	arg2 = "--global"
+	arg3 = "user.signingkey"
+
+	gitCmd = exec.Command(app, arg1, arg2, arg3, gid)
+	gitCmd.Run()
 }

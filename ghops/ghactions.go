@@ -3,6 +3,8 @@ package ghops
 import (
 	"context"
 	"fmt"
+	"log"
+	"os/exec"
 
 	"github.com/google/go-github/v43/github"
 	"golang.org/x/oauth2"
@@ -44,13 +46,29 @@ func ForkRepos(g *github.Client, repos map[string][]string) error {
 	return nil
 }
 
-func UploadKey(g *github.Client, pubkey string) error {
-	var pkey *string
-	pkey = &pubkey
+func UploadKeys(g *github.Client, sshKey, gid string) error {
+	var skey *string
+	skey = &sshKey
 	var pTitle *string
 	keyTitle := "MongoDB Onboarder"
 	pTitle = &keyTitle
-	_, _, err := g.Users.CreateKey(context.Background(), &github.Key{Title: pTitle, Key: pkey})
+	_, _, err := g.Users.CreateKey(context.Background(), &github.Key{Title: pTitle, Key: skey})
+	if err != nil {
+		return err
+	}
+	app := "gpg"
+	arg1 := "--armor"
+	arg2 := "--export"
+
+	gpgCmd := exec.Command(app, arg1, arg2, gid)
+	stdout, err := gpgCmd.Output()
+
+	if err != nil {
+		log.Fatalf("Error running gpg --armor --export %s: %v", gid, err)
+	}
+	gpgKey := string(stdout)
+
+	_, _, err = g.Users.CreateGPGKey(context.Background(), gpgKey)
 	if err != nil {
 		return err
 	}

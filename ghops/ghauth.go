@@ -15,6 +15,8 @@ import (
 	"github.com/atotto/clipboard"
 )
 
+const SCOPES = "repo, admin:public_key, admin:gpg_key"
+
 type DeviceFlowFirstPostResponse struct {
 	DeviceCode      string `json:"device_code"`
 	UserCode        string `json:"user_code"`
@@ -44,7 +46,7 @@ func AuthToGithub() string {
 
 	basicValues := DeviceFlowFirstPost{
 		ClientId: "bdbcd76255fe7e0ded14",
-		Scope:    "repo, admin:public_key",
+		Scope:    SCOPES,
 	}
 
 	data, err := json.Marshal(basicValues)
