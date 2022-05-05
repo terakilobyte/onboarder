@@ -41,6 +41,9 @@ func SetupLocalRepos(repos map[string][]string, user, outdir, keypath string) er
 				Auth:     publicKeys,
 			})
 			if err != nil {
+				if err.Error() == "repository already exists" {
+					continue
+				}
 				log.Fatalf("clone repo %s failed %s\n", url, err.Error())
 			}
 			currentConfig, err := r.Config()
