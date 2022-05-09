@@ -127,8 +127,8 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.Flags().StringVarP(&outDir, "out-dir", "o", "", "output directory")
-	rootCmd.Flags().StringVarP(&team, "team", "t", "", "team name")
+	rootCmd.PersistentFlags().StringVarP(&outDir, "out-dir", "o", "", "output directory")
+	rootCmd.PersistentFlags().StringVarP(&team, "team", "t", "", "team name")
 	rootCmd.Flags().StringVarP(&gid, "gid", "g", "", "gpg --armor --export xxx")
 	cobra.MarkFlagRequired(rootCmd.Flags(), "out-dir")
 	cobra.MarkFlagRequired(rootCmd.Flags(), "team")
