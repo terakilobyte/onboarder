@@ -28,6 +28,7 @@ import (
 )
 
 var outDir string
+var cfgFile string
 var team string
 var gid string
 
@@ -129,6 +130,7 @@ func Execute() {
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&outDir, "out-dir", "o", "", "output directory")
 	rootCmd.PersistentFlags().StringVarP(&team, "team", "t", "", "team name")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.onboarder.yaml)")
 	rootCmd.Flags().StringVarP(&gid, "gid", "g", "", "gpg --armor --export xxx")
 	cobra.MarkFlagRequired(rootCmd.Flags(), "out-dir")
 	cobra.MarkFlagRequired(rootCmd.Flags(), "team")
