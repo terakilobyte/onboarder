@@ -24,7 +24,7 @@ func SetupLocalRepos(repos map[string][]string, user, token, outdir string) erro
 	for org, orgRepos := range repos {
 		for _, repo := range orgRepos {
 			dest := path.Join(outdir, repo)
-			url := fmt.Sprintf("git@github.com:%s/%s.git", user, repo)
+			url := fmt.Sprintf("https://github.com/%s/%s.git", user, repo)
 
 			fmt.Printf("\nCloning %s/%s forked from %s\n", user, repo, org)
 			r, err := git.PlainClone(dest, false, &git.CloneOptions{
