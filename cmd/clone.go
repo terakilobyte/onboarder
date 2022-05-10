@@ -26,7 +26,7 @@ import (
 	"github.com/terakilobyte/onboarder/globals"
 )
 
-var sshPath string
+// var sshPath string
 
 // rootCmd represents the base command when called without any subcommands
 // Uncomment the following line if your bare application
@@ -55,7 +55,7 @@ Please acknowledge your acceptance and understanding of the above by pressing en
 `)
 		var acknowledge string
 		fmt.Scanln(&acknowledge)
-		client, user, err := ghops.InitClient(ghops.AuthToGithub())
+		client, user, token, err := ghops.InitClient(ghops.AuthToGithub())
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -65,7 +65,7 @@ Please acknowledge your acceptance and understanding of the above by pressing en
 		fmt.Println("Waiting 30 seconds for forks to complete...")
 		time.Sleep(30 * time.Second)
 
-		gitops.SetupLocalRepos(globals.GetReposForTeam(team), *user, outDir, sshPath)
+		gitops.SetupLocalRepos(globals.GetReposForTeam(team), *user, token, outDir)
 	},
 }
 
@@ -81,5 +81,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// cloneCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	cloneCmd.Flags().StringVarP(&sshPath, "ssh", "s", "", "Path to your private ssh key")
+	// cloneCmd.Flags().StringVarP(&sshPath, "ssh", "s", "", "Path to your private ssh key")
 }

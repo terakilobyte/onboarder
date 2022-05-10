@@ -10,7 +10,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func InitClient(token string) (*github.Client, *string, error) {
+func InitClient(token string) (*github.Client, *string, string, error) {
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
@@ -22,10 +22,10 @@ func InitClient(token string) (*github.Client, *string, error) {
 	user, _, err := client.Users.Get(ctx, "")
 	if err != nil {
 		fmt.Printf("\nerror: %v\n", err)
-		return nil, nil, err
+		return nil, nil, "", err
 	}
 
-	return client, user.Login, nil
+	return client, user.Login, token, nil
 
 }
 

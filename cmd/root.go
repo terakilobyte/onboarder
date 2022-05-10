@@ -100,12 +100,12 @@ Please acknowledge your acceptance and understanding of the above by pressing en
 `)
 		var acknowledge string
 		fmt.Scanln(&acknowledge)
-		client, user, err := ghops.InitClient(ghops.AuthToGithub())
+		client, user, token, err := ghops.InitClient(ghops.AuthToGithub())
 		if err != nil {
 			log.Fatalln(err)
 		}
 
-		sshKey, keypath, err := genssh.SetupSSH(*user)
+		sshKey, _, err := genssh.SetupSSH(*user)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -115,7 +115,7 @@ Please acknowledge your acceptance and understanding of the above by pressing en
 		fmt.Println("Waiting 30 seconds for forks to complete...")
 		time.Sleep(30 * time.Second)
 
-		gitops.SetupLocalRepos(globals.GetReposForTeam(team), *user, outDir, keypath)
+		gitops.SetupLocalRepos(globals.GetReposForTeam(team), *user, token, outDir)
 		gitops.ConfigSignedCommits(gid)
 	},
 }
