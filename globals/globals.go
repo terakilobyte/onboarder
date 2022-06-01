@@ -15,6 +15,7 @@ func GetReposForTeam(team string) map[string][]string {
 				"docs-kafka-connector",
 				"docs-tutorials",
 				"docs-mongodb-internal",
+				"docs-shared",
 			},
 			"mongodb": {
 				"docs-assets",
@@ -40,6 +41,7 @@ func GetReposForTeam(team string) map[string][]string {
 				"cloud-docs",
 				"docs-tutorials",
 				"docs-mongodb-internal",
+				"docs-shared",
 			},
 			"mongodb": {
 				"docs-kafka-connector",
