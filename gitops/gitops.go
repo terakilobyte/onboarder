@@ -24,7 +24,7 @@ func SetupLocalRepos(repos map[string][]string, user, token, outdir string) erro
 	for org, orgRepos := range repos {
 		for _, repo := range orgRepos {
 			dest := path.Join(outdir, repo)
-			url := fmt.Sprintf("https://github.com/%s/%s.git", user, repo)
+			url := fmt.Sprintf("https://github.com:%s/%s.git", user, repo)
 
 			fmt.Printf("\nCloning %s/%s forked from %s\n", user, repo, org)
 			r, err := git.PlainClone(dest, false, &git.CloneOptions{
@@ -44,7 +44,7 @@ func SetupLocalRepos(repos map[string][]string, user, token, outdir string) erro
 			}
 			currentConfig.Remotes["upstream"] = &config.RemoteConfig{
 				Name:  "upstream",
-				URLs:  []string{fmt.Sprintf("git@github.com:%s/%s.git", org, repo)},
+				URLs:  []string{fmt.Sprintf("https://github.com:%s/%s.git", org, repo)},
 				Fetch: []config.RefSpec{"+refs/heads/*:refs/remotes/upstream/*"},
 			}
 			var branch *config.Branch
