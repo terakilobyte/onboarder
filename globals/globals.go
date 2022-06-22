@@ -58,6 +58,7 @@ func GetReposForTeam(team string) map[string][]string {
 				"docs-ruby",
 				"docs-php-library",
 				"docs-mongoid",
+				"docs-visual-studio-extension",
 			},
 		},
 	}
