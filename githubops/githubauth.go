@@ -146,16 +146,14 @@ func AuthToGithub() string {
 }
 
 func InitClient() error {
-	var token string
 	if globals.GITHUBCLIENT == nil {
-		token = AuthToGithub()
+		globals.AUTHTOKEN = AuthToGithub()
 	}
-	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
+		&oauth2.Token{AccessToken: globals.AUTHTOKEN},
 	)
 
-	tc := oauth2.NewClient(ctx, ts)
+	tc := oauth2.NewClient(context.Background(), ts)
 	globals.GITHUBCLIENT = github.NewClient(tc)
 	GetUser(globals.GITHUBCLIENT)
 	return nil

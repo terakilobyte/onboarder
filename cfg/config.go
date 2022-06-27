@@ -2,7 +2,6 @@ package cfg
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 
@@ -21,6 +20,4 @@ func ParseConfigFile(configFile string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Printf("%v", globals.CONFIG)
 }

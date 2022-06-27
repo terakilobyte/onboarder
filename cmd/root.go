@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"github.com/google/go-github/v43/github"
 	"github.com/spf13/cobra"
@@ -82,8 +81,6 @@ Please acknowledge your acceptance and understanding of the above by pressing en
 			log.Fatalln(err)
 		}
 		githubops.ForkRepos(globals.GITHUBCLIENT, &globals.CONFIG)
-		fmt.Println("Waiting 30 seconds for forks to complete...")
-		time.Sleep(30 * time.Second)
 		fmt.Println("Uploading keys")
 		dat, err := os.ReadFile(publicSSHKey)
 		if err != nil {
@@ -108,20 +105,8 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&publicSSHKey, "ssh-key", "s", "", "public ssh key")
 	rootCmd.PersistentFlags().StringVarP(&gid, "gid", "g", "", "gpg --armor --export xxx")
 	rootCmd.PersistentFlags().StringVarP(&config, "config", "c", "", "config file")
-	err := cobra.MarkFlagRequired(rootCmd.Flags(), "out-dir")
-	if err != nil {
-		log.Fatal("out-dir is required")
-	}
-	err = cobra.MarkFlagRequired(rootCmd.Flags(), "gid")
-	if err != nil {
-		log.Fatal("gid is required")
-	}
-	err = cobra.MarkFlagRequired(rootCmd.Flags(), "ssh-key")
-	if err != nil {
-		log.Fatal("ssh-key is required")
-	}
-	err = cobra.MarkFlagRequired(rootCmd.Flags(), "config")
-	if err != nil {
-		log.Fatal("config is required")
-	}
+	cobra.MarkFlagRequired(rootCmd.Flags(), "out-dir")
+	cobra.MarkFlagRequired(rootCmd.Flags(), "gid")
+	cobra.MarkFlagRequired(rootCmd.Flags(), "ssh-key")
+	cobra.MarkFlagRequired(rootCmd.Flags(), "config")
 }

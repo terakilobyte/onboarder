@@ -15,7 +15,6 @@ import (
 )
 
 func SetupLocalRepos(cfg *globals.Config, user *github.User, token, outdir string) {
-
 	if _, err := os.Stat(outdir); os.IsNotExist(err) {
 		err = os.MkdirAll(outdir, 0700)
 		if err != nil {
@@ -26,13 +25,13 @@ func SetupLocalRepos(cfg *globals.Config, user *github.User, token, outdir strin
 	for _, org := range cfg.Orgs {
 		for _, repo := range org.Repos {
 			dest := path.Join(outdir, repo)
-			url := fmt.Sprintf("https://github.com:%s/%s.git", user, repo)
+			url := fmt.Sprintf("https://github.com/%s/%s.git", *user.Login, repo)
 
-			fmt.Printf("\nCloning %s/%s forked from %s\n", user, repo, org)
+			fmt.Printf("\nCloning %s/%s forked from %s\n", *user.Login, repo, org.Name)
 			r, err := git.PlainClone(dest, false, &git.CloneOptions{
 				URL:      url,
 				Progress: os.Stdout,
-				Auth:     &http.BasicAuth{Username: *user.Name, Password: token},
+				Auth:     &http.BasicAuth{Username: *user.Login, Password: token},
 			})
 			if err != nil {
 				if err.Error() == "repository already exists" {
@@ -46,7 +45,7 @@ func SetupLocalRepos(cfg *globals.Config, user *github.User, token, outdir strin
 			}
 			currentConfig.Remotes["upstream"] = &config.RemoteConfig{
 				Name:  "upstream",
-				URLs:  []string{fmt.Sprintf("https://github.com:%s/%s.git", org, repo)},
+				URLs:  []string{fmt.Sprintf("https://github.com:%s/%s.git", org.Name, repo)},
 				Fetch: []config.RefSpec{"+refs/heads/*:refs/remotes/upstream/*"},
 			}
 			var branch *config.Branch
