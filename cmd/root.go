@@ -18,18 +18,20 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"time"
+	"os"
 
+	"github.com/google/go-github/v43/github"
 	"github.com/spf13/cobra"
-	"github.com/terakilobyte/onboarder/genssh"
-	"github.com/terakilobyte/onboarder/ghops"
+	"github.com/terakilobyte/onboarder/cfg"
+	"github.com/terakilobyte/onboarder/githubops"
 	"github.com/terakilobyte/onboarder/gitops"
 	"github.com/terakilobyte/onboarder/globals"
 )
 
 var outDir string
-var team string
 var gid string
+var publicSSHKey string
+var config string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -37,22 +39,17 @@ var rootCmd = &cobra.Command{
 	Short: "Bootstrap your work git repositories.",
 	Long: `Onboarder will bootstrap your work git repositories.
 
-Onboarder is an onboarding tool built for the Docs team at MongoDB (initially).
+Onboarder is an onboarding tool built for the Docs team at MongoDB.
 
-Onboarder generates a new ssh keypair and uploads the public
-key to github for you. It will also add it to the ssh-agent, and it modifies
-your ~/.ssh/config file (creates if needed) to use the key.
-
-Onboarder also uploads your gpg key to github, and adds it to your
+Onboarder uploads your ssh and  gpg keys to github, and adds it to your
 your git config. Commits will be signed by default after using onboarder.
 
 Run onboarder, passing in flags for the output directory where repositories
-should be cloned to, and which team you are on.
+should be cloned to, the path to your *public* ssh key, your pgp key id,
+and the path to the configuration file (provided to you).
 
-Current teams are cet, and tdbx. Future versions will accept a config file
-rather than have this hardcoded in.
 
-onboarder -t tdbx -o ~/work
+onboarder -o ~/work
 
 The above will fork repos appropriate for the *tdbx* team and then clone
 them to the ~/work directory.
@@ -60,19 +57,6 @@ them to the ~/work directory.
 There will be a pause between forking and cloning. This is to allow time
 for larger repositories to fork.
 
-IMPORTANT: You will be asked a question during the process similar to:
-
-  The authenticity of host 'github.com (140.82.112.4)' can't be established.
-  ED25519 key fingerprint is SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU.
-  This key is not known by any other names
-  Are you sure you want to continue connecting (yes/no/[fingerprint])?
-
-You must answer yes to this question. It is adding the fingerprint to your
-known_hosts file.
-
-
-If you have already set up ssh keys, running this tool may be cause an error
-with your ~/.ssh/known_hosts file. Delete the file and run the tool again.
 	`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
@@ -87,35 +71,25 @@ working with. Please be patient.
 There will be a pause between forking and cloning. This is to allow time
 for larger repositories to fork.
 
-IMPORTANT: You will be asked a question during the process similar to:
-
-  The authenticity of host 'github.com (140.82.112.4)' can't be established.
-  ED25519 key fingerprint is SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU.
-  This key is not known by any other names
-  Are you sure you want to continue connecting (yes/no/[fingerprint])?
-
-You must answer yes to this question.
-
 Please acknowledge your acceptance and understanding of the above by pressing enter.
 `)
 		var acknowledge string
 		fmt.Scanln(&acknowledge)
-		client, user, token, err := ghops.InitClient(ghops.AuthToGithub())
+		cfg.ParseConfigFile(config)
+		err := githubops.InitClient()
 		if err != nil {
 			log.Fatalln(err)
 		}
-
-		sshKey, _, err := genssh.SetupSSH(*user)
+		githubops.ForkRepos(globals.GITHUBCLIENT, &globals.CONFIG)
+		fmt.Println("Uploading keys")
+		dat, err := os.ReadFile(publicSSHKey)
 		if err != nil {
-			log.Fatalln(err)
+			log.Fatal(err)
 		}
-		ghops.UploadKeys(client, sshKey, gid)
-		ghops.ForkRepos(client, globals.GetReposForTeam(team))
+		sshKey := github.String(string(dat))
+		githubops.UploadKeys(globals.GITHUBCLIENT, sshKey, &gid)
 
-		fmt.Println("Waiting 30 seconds for forks to complete...")
-		time.Sleep(30 * time.Second)
-
-		gitops.SetupLocalRepos(globals.GetReposForTeam(team), *user, token, outDir)
+		gitops.SetupLocalRepos(&globals.CONFIG, globals.GITHUBUSER, globals.AUTHTOKEN, outDir)
 		gitops.ConfigSignedCommits(gid)
 	},
 }
@@ -128,9 +102,11 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&outDir, "out-dir", "o", "", "output directory")
-	rootCmd.PersistentFlags().StringVarP(&team, "team", "t", "", "team name")
-	rootCmd.Flags().StringVarP(&gid, "gid", "g", "", "gpg --armor --export xxx")
+	rootCmd.PersistentFlags().StringVarP(&publicSSHKey, "ssh-key", "s", "", "public ssh key")
+	rootCmd.PersistentFlags().StringVarP(&gid, "gid", "g", "", "gpg --armor --export xxx")
+	rootCmd.PersistentFlags().StringVarP(&config, "config", "c", "", "config file")
 	cobra.MarkFlagRequired(rootCmd.Flags(), "out-dir")
-	cobra.MarkFlagRequired(rootCmd.Flags(), "team")
 	cobra.MarkFlagRequired(rootCmd.Flags(), "gid")
+	cobra.MarkFlagRequired(rootCmd.Flags(), "ssh-key")
+	cobra.MarkFlagRequired(rootCmd.Flags(), "config")
 }

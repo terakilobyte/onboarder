@@ -10,27 +10,28 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
+	"github.com/google/go-github/v43/github"
+	"github.com/terakilobyte/onboarder/globals"
 )
 
-func SetupLocalRepos(repos map[string][]string, user, token, outdir string) error {
-
+func SetupLocalRepos(cfg *globals.Config, user *github.User, token, outdir string) {
 	if _, err := os.Stat(outdir); os.IsNotExist(err) {
 		err = os.MkdirAll(outdir, 0700)
 		if err != nil {
-			return err
+			log.Fatal(err)
 		}
 	}
 
-	for org, orgRepos := range repos {
-		for _, repo := range orgRepos {
+	for _, org := range cfg.Orgs {
+		for _, repo := range org.Repos {
 			dest := path.Join(outdir, repo)
-			url := fmt.Sprintf("https://github.com/%s/%s.git", user, repo)
+			url := fmt.Sprintf("https://github.com/%s/%s.git", *user.Login, repo)
 
-			fmt.Printf("\nCloning %s/%s forked from %s\n", user, repo, org)
+			fmt.Printf("\nCloning %s/%s forked from %s\n", *user.Login, repo, org.Name)
 			r, err := git.PlainClone(dest, false, &git.CloneOptions{
 				URL:      url,
 				Progress: os.Stdout,
-				Auth:     &http.BasicAuth{Username: user, Password: token},
+				Auth:     &http.BasicAuth{Username: *user.Login, Password: token},
 			})
 			if err != nil {
 				if err.Error() == "repository already exists" {
@@ -44,7 +45,7 @@ func SetupLocalRepos(repos map[string][]string, user, token, outdir string) erro
 			}
 			currentConfig.Remotes["upstream"] = &config.RemoteConfig{
 				Name:  "upstream",
-				URLs:  []string{fmt.Sprintf("git@github.com:%s/%s.git", org, repo)},
+				URLs:  []string{fmt.Sprintf("https://github.com:%s/%s.git", org.Name, repo)},
 				Fetch: []config.RefSpec{"+refs/heads/*:refs/remotes/upstream/*"},
 			}
 			var branch *config.Branch
@@ -55,10 +56,12 @@ func SetupLocalRepos(repos map[string][]string, user, token, outdir string) erro
 			}
 			branch.Remote = "upstream"
 
-			r.SetConfig(currentConfig)
+			err = r.SetConfig(currentConfig)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 	}
-	return nil
 }
 
 func ConfigSignedCommits(gid string) {
@@ -69,7 +72,10 @@ func ConfigSignedCommits(gid string) {
 	arg4 := "true"
 
 	gitCmd := exec.Command(app, arg1, arg2, arg3, arg4)
-	gitCmd.Run()
+	err := gitCmd.Run()
+	if err != nil {
+		fmt.Println("unable to set commit.gpgsign to true")
+	}
 
 	app = "git"
 	arg1 = "config"
@@ -77,5 +83,8 @@ func ConfigSignedCommits(gid string) {
 	arg3 = "user.signingkey"
 
 	gitCmd = exec.Command(app, arg1, arg2, arg3, gid)
-	gitCmd.Run()
+	err = gitCmd.Run()
+	if err != nil {
+		fmt.Println("unable to set user.signingkey to gid")
+	}
 }

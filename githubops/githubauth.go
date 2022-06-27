@@ -1,7 +1,8 @@
-package ghops
+package githubops
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -13,9 +14,12 @@ import (
 	"time"
 
 	"github.com/atotto/clipboard"
+	"github.com/google/go-github/v43/github"
+	"github.com/terakilobyte/onboarder/globals"
+	"golang.org/x/oauth2"
 )
 
-const SCOPES = "repo, admin:public_key, admin:gpg_key"
+const SCOPES = "repo, admin:public_key, admin:gpg_key, user"
 
 type DeviceFlowFirstPostResponse struct {
 	DeviceCode      string `json:"device_code"`
@@ -82,7 +86,10 @@ func AuthToGithub() string {
 		"please open the following URL in your browser to complete the "+
 		"authentication process:\n%s\n", b.VerificationUri)
 	fmt.Printf("I've copied the following code to your clipboard.\nPlease paste it in the browser: \n\t%s\n", b.UserCode)
-	clipboard.WriteAll(b.UserCode)
+	err = clipboard.WriteAll(b.UserCode)
+	if err != nil {
+		fmt.Println("unable to copy code to clipboard")
+	}
 
 	openbrowser(b.VerificationUri)
 
@@ -99,7 +106,6 @@ func AuthToGithub() string {
 	fmt.Print("Waiting...")
 
 	go func() {
-		// client := &http.Client{}
 		for {
 			select {
 			case <-ticker.C:
@@ -137,6 +143,20 @@ func AuthToGithub() string {
 
 	return authenticated.AccessToken
 
+}
+
+func InitClient() error {
+	if globals.GITHUBCLIENT == nil {
+		globals.AUTHTOKEN = AuthToGithub()
+	}
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: globals.AUTHTOKEN},
+	)
+
+	tc := oauth2.NewClient(context.Background(), ts)
+	globals.GITHUBCLIENT = github.NewClient(tc)
+	GetUser(globals.GITHUBCLIENT)
+	return nil
 }
 
 func postToGithub(url string, data []byte) ([]byte, error) {

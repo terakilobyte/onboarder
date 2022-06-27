@@ -1,65 +1,25 @@
 package globals
 
-func GetReposForTeam(team string) map[string][]string {
+import "github.com/google/go-github/v43/github"
 
-	teamRepoMap := map[string]map[string][]string{
-		"cet": {
-			"10gen": {
-				"mms-docs",
-				"cloud-docs",
-				"docs-charts",
-				"docs-k8s-operator",
-				"cloud-docs-osb",
-				"docs-mongocli",
-				"docs-datalake",
-				"docs-kafka-connector",
-				"docs-tutorials",
-				"docs-mongodb-internal",
-				"docs-shared",
-			},
-			"mongodb": {
-				"docs-assets",
-				"docs",
-				"docs-ecosystem",
-				"docs-primer",
-				"docs-compass",
-				"docs-bi-connector",
-				"docs-spark-connector",
-				"docs-mongodb-shell",
-				"mongodb-kubernetes-operator",
-				"docs-realm",
-				"docs-commandline-tools",
-				"docs-worker-pool",
-				"docs-tools",
-				"docs-landing",
-				"mongocli",
-				"docs-atlas-cli",
-			},
-		},
-		"tdbx": {
-			"10gen": {
-				"cloud-docs",
-				"docs-tutorials",
-				"docs-mongodb-internal",
-				"docs-shared",
-			},
-			"mongodb": {
-				"docs-kafka-connector",
-				"docs-ecosystem",
-				"docs-spark-connector",
-				"docs-worker-pool",
-				"docs-tools",
-				"docs-landing",
-				"docs-node",
-				"docs-java",
-				"docs-java-other",
-				"docs-visual-studio-extension",
-				"docs-golang",
-				"docs-ruby",
-				"docs-php-library",
-				"docs-mongoid",
-			},
-		},
-	}
-	return teamRepoMap[team]
+var AUTHTOKEN string
+var GITHUBCLIENT *github.Client
+var GITHUBUSER *github.User
+var CONFIG Config
+
+type Config struct {
+	Orgs []Org   `json:"orgs"`
+	Hook Webhook `json:"webhook"`
+}
+
+type Org struct {
+	Name  string   `json:"name"`
+	Repos []string `json:"repos"`
+}
+
+type Webhook struct {
+	Url         string `json:"url"`
+	ContentType string `json:"content_type"`
+	Secret      string `json:"secret"`
+	SSLVerify   string `json:"ssl_verify"`
 }
