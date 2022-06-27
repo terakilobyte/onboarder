@@ -30,7 +30,6 @@ import (
 )
 
 var outDir string
-var team string
 var gid string
 var publicSSHKey string
 var config string
@@ -106,13 +105,23 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&outDir, "out-dir", "o", "", "output directory")
-	rootCmd.PersistentFlags().StringVarP(&team, "team", "t", "", "team name")
 	rootCmd.PersistentFlags().StringVarP(&publicSSHKey, "ssh-key", "s", "", "public ssh key")
 	rootCmd.PersistentFlags().StringVarP(&gid, "gid", "g", "", "gpg --armor --export xxx")
 	rootCmd.PersistentFlags().StringVarP(&config, "config", "c", "", "config file")
-	cobra.MarkFlagRequired(rootCmd.Flags(), "out-dir")
-	cobra.MarkFlagRequired(rootCmd.Flags(), "team")
-	cobra.MarkFlagRequired(rootCmd.Flags(), "gid")
-	cobra.MarkFlagRequired(rootCmd.Flags(), "ssh-key")
-	cobra.MarkFlagRequired(rootCmd.Flags(), "config")
+	err := cobra.MarkFlagRequired(rootCmd.Flags(), "out-dir")
+	if err != nil {
+		log.Fatal("out-dir is required")
+	}
+	err = cobra.MarkFlagRequired(rootCmd.Flags(), "gid")
+	if err != nil {
+		log.Fatal("gid is required")
+	}
+	err = cobra.MarkFlagRequired(rootCmd.Flags(), "ssh-key")
+	if err != nil {
+		log.Fatal("ssh-key is required")
+	}
+	err = cobra.MarkFlagRequired(rootCmd.Flags(), "config")
+	if err != nil {
+		log.Fatal("config is required")
+	}
 }

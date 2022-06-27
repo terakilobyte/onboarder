@@ -14,12 +14,12 @@ import (
 	"github.com/terakilobyte/onboarder/globals"
 )
 
-func SetupLocalRepos(cfg *globals.Config, user *github.User, token, outdir string) error {
+func SetupLocalRepos(cfg *globals.Config, user *github.User, token, outdir string) {
 
 	if _, err := os.Stat(outdir); os.IsNotExist(err) {
 		err = os.MkdirAll(outdir, 0700)
 		if err != nil {
-			return err
+			log.Fatal(err)
 		}
 	}
 
@@ -57,10 +57,12 @@ func SetupLocalRepos(cfg *globals.Config, user *github.User, token, outdir strin
 			}
 			branch.Remote = "upstream"
 
-			r.SetConfig(currentConfig)
+			err = r.SetConfig(currentConfig)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 	}
-	return nil
 }
 
 func ConfigSignedCommits(gid string) {
@@ -71,7 +73,10 @@ func ConfigSignedCommits(gid string) {
 	arg4 := "true"
 
 	gitCmd := exec.Command(app, arg1, arg2, arg3, arg4)
-	gitCmd.Run()
+	err := gitCmd.Run()
+	if err != nil {
+		fmt.Println("unable to set commit.gpgsign to true")
+	}
 
 	app = "git"
 	arg1 = "config"
@@ -79,5 +84,8 @@ func ConfigSignedCommits(gid string) {
 	arg3 = "user.signingkey"
 
 	gitCmd = exec.Command(app, arg1, arg2, arg3, gid)
-	gitCmd.Run()
+	err = gitCmd.Run()
+	if err != nil {
+		fmt.Println("unable to set user.signingkey to gid")
+	}
 }

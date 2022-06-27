@@ -10,15 +10,14 @@ import (
 	"github.com/terakilobyte/onboarder/globals"
 )
 
-func ForkRepos(g *github.Client, cfg *globals.Config) error {
+func ForkRepos(g *github.Client, cfg *globals.Config) {
 	for _, org := range cfg.Orgs {
 		for _, repo := range org.Repos {
 			fmt.Printf("\nForking %s/%s\n", org, repo)
 			_, _, err := g.Repositories.CreateFork(context.Background(), org.Name, repo, &github.RepositoryCreateForkOptions{})
 			if err != nil {
 				if _, ok := err.(*github.AcceptedError); !ok {
-					fmt.Printf("\nerror: %v\n", err)
-					return err
+					log.Fatalf("\nerror: %v\n", err)
 				}
 			}
 			fmt.Println("setting up repo webhooks")
@@ -48,16 +47,15 @@ func ForkRepos(g *github.Client, cfg *globals.Config) error {
 			}
 		}
 	}
-	return nil
 }
 
-func UploadKeys(g *github.Client, sshKey, gid *string) error {
+func UploadKeys(g *github.Client, sshKey, gid *string) {
 	var pTitle *string
 	keyTitle := "MongoDB"
 	pTitle = &keyTitle
 	_, _, err := g.Users.CreateKey(context.Background(), &github.Key{Title: pTitle, Key: sshKey})
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
 	app := "gpg"
 	arg1 := "--armor"
@@ -73,9 +71,8 @@ func UploadKeys(g *github.Client, sshKey, gid *string) error {
 
 	_, _, err = g.Users.CreateGPGKey(context.Background(), gpgKey)
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
-	return nil
 }
 
 func GetUser(g *github.Client) {

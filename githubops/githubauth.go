@@ -86,7 +86,10 @@ func AuthToGithub() string {
 		"please open the following URL in your browser to complete the "+
 		"authentication process:\n%s\n", b.VerificationUri)
 	fmt.Printf("I've copied the following code to your clipboard.\nPlease paste it in the browser: \n\t%s\n", b.UserCode)
-	clipboard.WriteAll(b.UserCode)
+	err = clipboard.WriteAll(b.UserCode)
+	if err != nil {
+		fmt.Println("unable to copy code to clipboard")
+	}
 
 	openbrowser(b.VerificationUri)
 
