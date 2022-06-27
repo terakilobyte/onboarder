@@ -10,8 +10,8 @@ import (
 	"github.com/terakilobyte/onboarder/globals"
 )
 
-func ForkRepos(g *github.Client, config *globals.Config) error {
-	for _, org := range config.Orgs {
+func ForkRepos(g *github.Client, cfg *globals.Config) error {
+	for _, org := range cfg.Orgs {
 		for _, repo := range org.Repos {
 			fmt.Printf("\nForking %s/%s\n", org, repo)
 			_, _, err := g.Repositories.CreateFork(context.Background(), org.Name, repo, &github.RepositoryCreateForkOptions{})
@@ -27,7 +27,7 @@ func ForkRepos(g *github.Client, config *globals.Config) error {
 				log.Fatal(err)
 			}
 			for _, hook := range hooks {
-				if hook.Config["url"] == globals.CONFIG.Hook.Url {
+				if hook.Config["url"] == cfg.Hook.Url {
 					fmt.Println("webhook already exists")
 					continue
 				}
@@ -37,10 +37,10 @@ func ForkRepos(g *github.Client, config *globals.Config) error {
 				Name:   github.String("web"),
 				Active: github.Bool(true),
 				Config: map[string]interface{}{
-					"url":          github.String(globals.CONFIG.Hook.Url),
-					"content_type": github.String(globals.CONFIG.Hook.ContentType),
-					"secret":       github.String(globals.CONFIG.Hook.Secret),
-					"ssl_verify":   github.String(globals.CONFIG.Hook.Secret),
+					"url":          github.String(cfg.Hook.Url),
+					"content_type": github.String(cfg.Hook.ContentType),
+					"secret":       github.String(cfg.Hook.Secret),
+					"ssl_verify":   github.String(cfg.Hook.Secret),
 				},
 			})
 			if err != nil {
