@@ -21,7 +21,8 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/terakilobyte/onboarder/ghops"
+	"github.com/terakilobyte/onboarder/cfg"
+	"github.com/terakilobyte/onboarder/githubops"
 	"github.com/terakilobyte/onboarder/gitops"
 	"github.com/terakilobyte/onboarder/globals"
 )
@@ -34,13 +35,15 @@ import (
 
 // cloneCmd represents the clone command
 var cloneCmd = &cobra.Command{
-	Use:   "clone",
-	Short: "Clones repoitories for a team.",
-	Long: `The clone subcommand will clone repositories specified by
-your team to your local computer. It will also fork repositories, if necessary.
-Repositories that are already forked are a no-op.
+	Use:   "repos",
+	Short: "Forks and clones your work repositories and sets up any configured webhooks.",
+	Long: `The repos subcommand will fork and clone repositories specified by
+your team to your local computer. .
 
-  onboarder clone -s ~/.ssh/my_key_ed25519 -t tdbx -o ~/work`,
+Repositories will be cloned to the directory specified by the -o flag. Repositories
+that are already forked or present in the directory result in a no-op.
+
+  onboarder clone -t tdbx -o ~/work`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Print(`
 I'm about to begin forking and cloning all of the repositories that you should need.
@@ -55,17 +58,16 @@ Please acknowledge your acceptance and understanding of the above by pressing en
 `)
 		var acknowledge string
 		fmt.Scanln(&acknowledge)
-		client, user, token, err := ghops.InitClient(ghops.AuthToGithub())
+		cfg.ParseConfigFile(config)
+		err := githubops.InitClient()
 		if err != nil {
 			log.Fatalln(err)
 		}
-
-		ghops.ForkRepos(client, globals.GetReposForTeam(team))
-
+		githubops.ForkRepos(globals.GITHUBCLIENT, &globals.CONFIG)
 		fmt.Println("Waiting 30 seconds for forks to complete...")
 		time.Sleep(30 * time.Second)
 
-		gitops.SetupLocalRepos(globals.GetReposForTeam(team), *user, token, outDir)
+		gitops.SetupLocalRepos(&globals.CONFIG, globals.GITHUBUSER, globals.AUTHTOKEN, outDir)
 	},
 }
 

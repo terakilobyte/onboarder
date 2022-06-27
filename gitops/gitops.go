@@ -10,9 +10,11 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
+	"github.com/google/go-github/v43/github"
+	"github.com/terakilobyte/onboarder/globals"
 )
 
-func SetupLocalRepos(repos map[string][]string, user, token, outdir string) error {
+func SetupLocalRepos(cfg *globals.Config, user *github.User, token, outdir string) error {
 
 	if _, err := os.Stat(outdir); os.IsNotExist(err) {
 		err = os.MkdirAll(outdir, 0700)
@@ -21,8 +23,8 @@ func SetupLocalRepos(repos map[string][]string, user, token, outdir string) erro
 		}
 	}
 
-	for org, orgRepos := range repos {
-		for _, repo := range orgRepos {
+	for _, org := range cfg.Orgs {
+		for _, repo := range org.Repos {
 			dest := path.Join(outdir, repo)
 			url := fmt.Sprintf("https://github.com:%s/%s.git", user, repo)
 
@@ -30,7 +32,7 @@ func SetupLocalRepos(repos map[string][]string, user, token, outdir string) erro
 			r, err := git.PlainClone(dest, false, &git.CloneOptions{
 				URL:      url,
 				Progress: os.Stdout,
-				Auth:     &http.BasicAuth{Username: user, Password: token},
+				Auth:     &http.BasicAuth{Username: *user.Name, Password: token},
 			})
 			if err != nil {
 				if err.Error() == "repository already exists" {

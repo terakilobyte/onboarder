@@ -16,14 +16,18 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
+	"log"
+	"os"
 
+	"github.com/google/go-github/v43/github"
 	"github.com/spf13/cobra"
+	"github.com/terakilobyte/onboarder/githubops"
+	"github.com/terakilobyte/onboarder/globals"
 )
 
-// configCmd represents the config command
-var configCmd = &cobra.Command{
-	Use:   "config",
+// sshCmd represents the ssh command
+var sshCmd = &cobra.Command{
+	Use:   "ssh",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -32,21 +36,29 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("all flag vals")
-		fmt.Printf("%+v\n", cmd.Flags())
+		err := githubops.InitClient()
+		if err != nil {
+			log.Fatalln(err)
+		}
+		dat, err := os.ReadFile(publicSSHKey)
+		if err != nil {
+			log.Fatal(err)
+		}
+		sshKey := github.String(string(dat))
+		githubops.UploadKeys(globals.GITHUBCLIENT, sshKey, &gid)
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(configCmd)
+	rootCmd.AddCommand(sshCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// configCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// sshCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// configCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// sshCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
