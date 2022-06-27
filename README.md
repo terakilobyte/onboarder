@@ -24,12 +24,15 @@ key to github for you. It will also add it to the ssh-agent, and it modifies
 your `~/.ssh/config` file (creates if needed) to use the key.
 
 Run onboarder, passing in flags for the output directory where repositories
-should be cloned to, and which team you are on.
+should be cloned to, and which team you are on. You also need to specify your
+gpg key to enable signed commits. Follow the instructions on 
+[Generate a GPG key](https://docs.github.com/en/enterprise-cloud@latest/authentication/managing-commit-signature-verification/generating-a-new-gpg-key)
+to create one.
 
 Current teams are `cet`, and `tdbx`.
 
 ```sh
-onboarder -t tdbx -o ~/work
+onboarder -g <gpg key location> -t tdbx -o ~/work
 ```
 
 The above will fork repos appropriate for the *tdbx* team and then clone
