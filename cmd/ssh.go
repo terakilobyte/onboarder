@@ -16,13 +16,10 @@ limitations under the License.
 package cmd
 
 import (
-	"log"
-	"os"
-
-	"github.com/google/go-github/v43/github"
 	"github.com/spf13/cobra"
 	"github.com/terakilobyte/onboarder/githubops"
 	"github.com/terakilobyte/onboarder/globals"
+	"log"
 )
 
 // sshCmd represents the ssh command
@@ -40,12 +37,7 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			log.Fatalln(err)
 		}
-		dat, err := os.ReadFile(publicSSHKey)
-		if err != nil {
-			log.Fatal(err)
-		}
-		sshKey := github.String(string(dat))
-		githubops.UploadKeys(globals.GITHUBCLIENT, sshKey, &gid)
+		githubops.UploadSSHKey(globals.GITHUBCLIENT, publicSSHKey)
 	},
 }
 

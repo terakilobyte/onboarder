@@ -45,7 +45,7 @@ func SetupLocalRepos(cfg *globals.Config, user *github.User, token, outdir strin
 			}
 			currentConfig.Remotes["upstream"] = &config.RemoteConfig{
 				Name:  "upstream",
-				URLs:  []string{fmt.Sprintf("https://github.com:%s/%s.git", org.Name, repo)},
+				URLs:  []string{fmt.Sprintf("https://github.com/%s/%s.git", org.Name, repo)},
 				Fetch: []config.RefSpec{"+refs/heads/*:refs/remotes/upstream/*"},
 			}
 			var branch *config.Branch
@@ -64,7 +64,21 @@ func SetupLocalRepos(cfg *globals.Config, user *github.User, token, outdir strin
 	}
 }
 
-func ConfigSignedCommits(gid string) {
+func ConfigSSH() {
+	app := "git"
+	arg1 := "config"
+	arg2 := "--global"
+	arg3 := "url.git@github.com:.insteadof"
+	arg4 := "https://github.com/"
+
+	gitCmd := exec.Command(app, arg1, arg2, arg3, arg4)
+	err := gitCmd.Run()
+	if err != nil {
+		fmt.Println("unable to set ssh instead of https")
+	}
+}
+
+func ConfigSignedCommits(gid *string) {
 	app := "git"
 	arg1 := "config"
 	arg2 := "--global"
@@ -82,7 +96,7 @@ func ConfigSignedCommits(gid string) {
 	arg2 = "--global"
 	arg3 = "user.signingkey"
 
-	gitCmd = exec.Command(app, arg1, arg2, arg3, gid)
+	gitCmd = exec.Command(app, arg1, arg2, arg3, *gid)
 	err = gitCmd.Run()
 	if err != nil {
 		fmt.Println("unable to set user.signingkey to gid")

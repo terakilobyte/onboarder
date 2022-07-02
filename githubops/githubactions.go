@@ -3,8 +3,11 @@ package githubops
 import (
 	"context"
 	"fmt"
+	"github.com/terakilobyte/onboarder/gitops"
 	"log"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -55,14 +58,23 @@ func ForkRepos(g *github.Client, cfg *globals.Config) {
 	}
 }
 
-func UploadKeys(g *github.Client, sshKey, gid *string) {
-	var pTitle *string
-	keyTitle := "MongoDB"
-	pTitle = &keyTitle
-	_, _, err := g.Users.CreateKey(context.Background(), &github.Key{Title: pTitle, Key: sshKey})
+func UploadSSHKey(g *github.Client, sshKeyPath string) {
+	dat, err := os.ReadFile(sshKeyPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	key := github.String(string(dat))
+	_, _, err = g.Users.CreateKey(context.Background(), &github.Key{
+		Title: github.String(strings.TrimSuffix(filepath.Base(sshKeyPath), filepath.Ext(sshKeyPath))),
+		Key:   key,
+	})
 	if err != nil && !strings.Contains(err.Error(), "key is already in use") {
 		log.Fatal(err.Error())
 	}
+	gitops.ConfigSSH()
+}
+
+func UploadGPGKey(g *github.Client, gid *string) {
 	app := "gpg"
 	arg1 := "--armor"
 	arg2 := "--export"
@@ -79,6 +91,7 @@ func UploadKeys(g *github.Client, sshKey, gid *string) {
 	if err != nil && !strings.Contains(err.Error(), "key_id already exists") {
 		log.Fatal(err)
 	}
+	gitops.ConfigSignedCommits(gid)
 }
 
 func GetUser(g *github.Client) {

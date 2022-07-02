@@ -17,15 +17,12 @@ package cmd
 
 import (
 	"fmt"
-	"log"
-	"os"
-
-	"github.com/google/go-github/v43/github"
 	"github.com/spf13/cobra"
 	"github.com/terakilobyte/onboarder/cfg"
 	"github.com/terakilobyte/onboarder/githubops"
 	"github.com/terakilobyte/onboarder/gitops"
 	"github.com/terakilobyte/onboarder/globals"
+	"log"
 )
 
 var outDir string
@@ -81,16 +78,10 @@ Please acknowledge your acceptance and understanding of the above by pressing en
 			log.Fatalln(err)
 		}
 		githubops.ForkRepos(globals.GITHUBCLIENT, &globals.CONFIG)
-		fmt.Println("Uploading keys")
-		dat, err := os.ReadFile(publicSSHKey)
-		if err != nil {
-			log.Fatal(err)
-		}
-		sshKey := github.String(string(dat))
-		githubops.UploadKeys(globals.GITHUBCLIENT, sshKey, &gid)
+		githubops.UploadSSHKey(globals.GITHUBCLIENT, publicSSHKey)
+		githubops.UploadGPGKey(globals.GITHUBCLIENT, &gid)
 
 		gitops.SetupLocalRepos(&globals.CONFIG, globals.GITHUBUSER, globals.AUTHTOKEN, outDir)
-		gitops.ConfigSignedCommits(gid)
 	},
 }
 
