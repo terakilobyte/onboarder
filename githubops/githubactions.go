@@ -3,13 +3,14 @@ package githubops
 import (
 	"context"
 	"fmt"
-	"github.com/terakilobyte/onboarder/gitops"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/terakilobyte/onboarder/gitops"
 
 	"github.com/google/go-github/v43/github"
 	"github.com/terakilobyte/onboarder/globals"
@@ -18,8 +19,8 @@ import (
 func ForkRepos(g *github.Client, cfg *globals.Config) {
 	for _, org := range cfg.Orgs {
 		for _, repo := range org.Repos {
-			fmt.Printf("\nForking %s/%s\n", org.Name, repo)
-			_, _, err := g.Repositories.CreateFork(context.Background(), org.Name, repo, &github.RepositoryCreateForkOptions{})
+			fmt.Printf("\nForking %s/%s\n", org.Name, repo.Name)
+			_, _, err := g.Repositories.CreateFork(context.Background(), org.Name, repo.Name, &github.RepositoryCreateForkOptions{})
 			if err != nil {
 				if _, ok := err.(*github.AcceptedError); !ok {
 					log.Fatalf("\nerror: %v\n", err)
@@ -32,24 +33,27 @@ func ForkRepos(g *github.Client, cfg *globals.Config) {
 	fmt.Println("setting up repo webhooks")
 	for _, org := range cfg.Orgs {
 		for _, repo := range org.Repos {
-			hooks, _, err := g.Repositories.ListHooks(context.Background(), *globals.GITHUBUSER.Login, repo, nil)
+			hooks, _, err := g.Repositories.ListHooks(context.Background(), *globals.GITHUBUSER.Login, repo.Name, nil)
 			if err != nil {
 				log.Fatal(err)
 			}
-			for _, hook := range hooks {
-				if hook.Config["url"] != cfg.Hook.Url {
-					_, _, err = g.Repositories.CreateHook(context.Background(), *globals.GITHUBUSER.Login, repo, &github.Hook{
-						Name:   github.String("web"),
-						Active: github.Bool(true),
-						Config: map[string]interface{}{
-							"url":          github.String(cfg.Hook.Url),
-							"content_type": github.String(cfg.Hook.ContentType),
-							"secret":       github.String(cfg.Hook.Secret),
-							"ssl_verify":   github.String(cfg.Hook.Secret),
-						},
-					})
-					if err != nil {
-						log.Fatal(err)
+			if repo.UseWebhook {
+
+				for _, hook := range hooks {
+					if hook.Config["url"] != cfg.Hook.Url {
+						_, _, err = g.Repositories.CreateHook(context.Background(), *globals.GITHUBUSER.Login, repo.Name, &github.Hook{
+							Name:   github.String("web"),
+							Active: github.Bool(true),
+							Config: map[string]interface{}{
+								"url":          github.String(cfg.Hook.Url),
+								"content_type": github.String(cfg.Hook.ContentType),
+								"secret":       github.String(cfg.Hook.Secret),
+								"ssl_verify":   github.String(cfg.Hook.Secret),
+							},
+						})
+						if err != nil {
+							log.Fatal(err)
+						}
 					}
 				}
 			}

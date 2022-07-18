@@ -13,8 +13,13 @@ type Config struct {
 }
 
 type Org struct {
-	Name  string   `json:"name"`
-	Repos []string `json:"repos"`
+	Name  string `json:"name"`
+	Repos []Repo `json:"repos"`
+}
+
+type Repo struct {
+	Name       string `json:"name"`
+	UseWebhook bool   `json:"useWebhook"`
 }
 
 type Webhook struct {
