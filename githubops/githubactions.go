@@ -49,7 +49,7 @@ func ForkRepos(g *github.Client, cfg *globals.Config) {
 
 				if !found {
 
-					_, res, err := g.Repositories.CreateHook(context.Background(), *globals.GITHUBUSER.Login, repo.Name, &github.Hook{
+					_, _, err := g.Repositories.CreateHook(context.Background(), *globals.GITHUBUSER.Login, repo.Name, &github.Hook{
 						Name:   github.String("web"),
 						Active: github.Bool(true),
 						Config: map[string]interface{}{
