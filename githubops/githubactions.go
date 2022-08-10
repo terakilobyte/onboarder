@@ -39,21 +39,28 @@ func ForkRepos(g *github.Client, cfg *globals.Config) {
 			}
 			if repo.UseWebhook {
 
+				found := false
 				for _, hook := range hooks {
-					if hook.Config["url"] != cfg.Hook.Url {
-						_, _, err = g.Repositories.CreateHook(context.Background(), *globals.GITHUBUSER.Login, repo.Name, &github.Hook{
-							Name:   github.String("web"),
-							Active: github.Bool(true),
-							Config: map[string]interface{}{
-								"url":          github.String(cfg.Hook.Url),
-								"content_type": github.String(cfg.Hook.ContentType),
-								"secret":       github.String(cfg.Hook.Secret),
-								"ssl_verify":   github.String(cfg.Hook.Secret),
-							},
-						})
-						if err != nil {
-							log.Fatal(err)
-						}
+					if hook.Config["url"] == cfg.Hook.Url {
+						found = true
+						break
+					}
+				}
+
+				if !found {
+
+					_, res, err := g.Repositories.CreateHook(context.Background(), *globals.GITHUBUSER.Login, repo.Name, &github.Hook{
+						Name:   github.String("web"),
+						Active: github.Bool(true),
+						Config: map[string]interface{}{
+							"url":          github.String(cfg.Hook.Url),
+							"content_type": github.String(cfg.Hook.ContentType),
+							"secret":       github.String(cfg.Hook.Secret),
+							"ssl_verify":   github.String(cfg.Hook.Secret),
+						},
+					})
+					if err != nil {
+						log.Fatal(err)
 					}
 				}
 			}
