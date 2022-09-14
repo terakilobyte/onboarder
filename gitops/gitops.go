@@ -77,28 +77,3 @@ func ConfigSSH() {
 		fmt.Println("unable to set ssh instead of https")
 	}
 }
-
-func ConfigSignedCommits(gid *string) {
-	app := "git"
-	arg1 := "config"
-	arg2 := "--global"
-	arg3 := "commit.gpgsign"
-	arg4 := "true"
-
-	gitCmd := exec.Command(app, arg1, arg2, arg3, arg4)
-	err := gitCmd.Run()
-	if err != nil {
-		fmt.Println("unable to set commit.gpgsign to true")
-	}
-
-	app = "git"
-	arg1 = "config"
-	arg2 = "--global"
-	arg3 = "user.signingkey"
-
-	gitCmd = exec.Command(app, arg1, arg2, arg3, *gid)
-	err = gitCmd.Run()
-	if err != nil {
-		fmt.Println("unable to set user.signingkey to gid")
-	}
-}

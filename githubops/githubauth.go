@@ -19,7 +19,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-const SCOPES = "repo, admin:public_key, admin:gpg_key, user"
+const SCOPES = "repo, admin:public_key, user"
 
 type DeviceFlowFirstPostResponse struct {
 	DeviceCode      string `json:"device_code"`

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -33,6 +32,10 @@ func ForkRepos(g *github.Client, cfg *globals.Config) {
 	fmt.Println("setting up repo webhooks")
 	for _, org := range cfg.Orgs {
 		for _, repo := range org.Repos {
+			if repo.SetSubscription {
+				fmt.Println("adding you as a watcher to " + org.Name + "/" + repo.Name)
+				g.Activity.SetRepositorySubscription(context.Background(), org.Name, repo.Name, &github.Subscription{Subscribed: github.Bool(true)})
+			}
 			hooks, _, err := g.Repositories.ListHooks(context.Background(), *globals.GITHUBUSER.Login, repo.Name, nil)
 			if err != nil {
 				log.Fatal(err)
@@ -70,6 +73,7 @@ func ForkRepos(g *github.Client, cfg *globals.Config) {
 }
 
 func UploadSSHKey(g *github.Client, sshKeyPath string) {
+	fmt.Println("uploading ssh key")
 	dat, err := os.ReadFile(sshKeyPath)
 	if err != nil {
 		log.Fatal(err)
@@ -83,26 +87,6 @@ func UploadSSHKey(g *github.Client, sshKeyPath string) {
 		log.Fatal(err.Error())
 	}
 	gitops.ConfigSSH()
-}
-
-func UploadGPGKey(g *github.Client, gid *string) {
-	app := "gpg"
-	arg1 := "--armor"
-	arg2 := "--export"
-
-	gpgCmd := exec.Command(app, arg1, arg2, *gid)
-	stdout, err := gpgCmd.Output()
-
-	if err != nil {
-		log.Fatalf("Error running gpg --armor --export %v: %v", gid, err)
-	}
-	gpgKey := string(stdout)
-
-	_, _, err = g.Users.CreateGPGKey(context.Background(), gpgKey)
-	if err != nil && !strings.Contains(err.Error(), "key_id already exists") {
-		log.Fatal(err)
-	}
-	gitops.ConfigSignedCommits(gid)
 }
 
 func GetUser(g *github.Client) {

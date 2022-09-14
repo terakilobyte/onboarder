@@ -18,8 +18,9 @@ type Org struct {
 }
 
 type Repo struct {
-	Name       string `json:"name"`
-	UseWebhook bool   `json:"useWebhook"`
+	Name            string `json:"name"`
+	UseWebhook      bool   `json:"useWebhook"`
+	SetSubscription bool   `json:"setSubscription"`
 }
 
 type Webhook struct {
