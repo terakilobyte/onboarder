@@ -29,6 +29,8 @@ import (
 var outDir string
 var publicSSHKey string
 var config string
+var noPause bool
+var noClone bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -77,12 +79,13 @@ Please acknowledge your acceptance and understanding of the above by pressing en
 		if err != nil {
 			log.Fatalln(err)
 		}
-		githubops.ForkRepos(globals.GITHUBCLIENT, &globals.CONFIG)
+		githubops.ForkRepos(globals.GITHUBCLIENT, &globals.CONFIG, noPause)
 		if publicSSHKey != "" {
 			githubops.UploadSSHKey(globals.GITHUBCLIENT, publicSSHKey)
 		}
-
-		gitops.SetupLocalRepos(&globals.CONFIG, globals.GITHUBUSER, globals.AUTHTOKEN, outDir)
+		if !noClone {
+			gitops.SetupLocalRepos(&globals.CONFIG, globals.GITHUBUSER, globals.AUTHTOKEN, outDir)
+		}
 	},
 }
 
@@ -96,6 +99,8 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&outDir, "out-dir", "o", "", "output directory")
 	rootCmd.PersistentFlags().StringVarP(&publicSSHKey, "ssh-key", "s", "", "public ssh key")
 	rootCmd.PersistentFlags().StringVarP(&config, "config", "c", "", "config file")
+	rootCmd.PersistentFlags().BoolVar(&noPause, "no-pause", false, "don't pause between forking and cloning")
+	rootCmd.PersistentFlags().BoolVar(&noClone, "no-clone", false, "don't clone repositories")
 	cobra.MarkFlagRequired(rootCmd.Flags(), "out-dir")
 	cobra.MarkFlagRequired(rootCmd.Flags(), "config")
 }

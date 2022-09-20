@@ -15,7 +15,23 @@ import (
 	"github.com/terakilobyte/onboarder/globals"
 )
 
-func ForkRepos(g *github.Client, cfg *globals.Config) {
+func ForkRepos(g *github.Client, cfg *globals.Config, noPause bool) {
+	makeForks(cfg, g)
+	if !noPause {
+		fmt.Println("waiting for 30 seconds to allow for forking to complete")
+		time.Sleep(30 * time.Second)
+	}
+	for _, org := range cfg.Orgs {
+		for _, repo := range org.Repos {
+			addWatcher(repo, org, g)
+			addCollaborators(repo, g)
+			addHooks(g, repo, cfg)
+
+		}
+	}
+}
+
+func makeForks(cfg *globals.Config, g *github.Client) {
 	for _, org := range cfg.Orgs {
 		for _, repo := range org.Repos {
 			fmt.Printf("\nForking %s/%s\n", org.Name, repo.Name)
@@ -27,47 +43,63 @@ func ForkRepos(g *github.Client, cfg *globals.Config) {
 			}
 		}
 	}
-	fmt.Println("waiting for 30 seconds to allow for forking to complete")
-	time.Sleep(30 * time.Second)
-	fmt.Println("setting up repo webhooks")
-	for _, org := range cfg.Orgs {
-		for _, repo := range org.Repos {
-			if repo.SetSubscription {
-				fmt.Println("adding you as a watcher to " + org.Name + "/" + repo.Name)
-				g.Activity.SetRepositorySubscription(context.Background(), org.Name, repo.Name, &github.Subscription{Subscribed: github.Bool(true)})
+}
+
+func addWatcher(repo globals.Repo, org globals.Org, g *github.Client) {
+	if repo.SetSubscription {
+		fmt.Println("adding you as a watcher to " + org.Name + "/" + repo.Name)
+		g.Activity.SetRepositorySubscription(context.Background(), org.Name, repo.Name, &github.Subscription{Subscribed: github.Bool(true)})
+	}
+}
+
+func addHooks(g *github.Client, repo globals.Repo, cfg *globals.Config) {
+	hooks, _, err := g.Repositories.ListHooks(context.Background(), *globals.GITHUBUSER.Login, repo.Name, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if repo.UseWebhook {
+
+		found := false
+		for _, hook := range hooks {
+			if hook.Config["url"] == cfg.Hook.Url {
+				found = true
+				break
 			}
-			hooks, _, err := g.Repositories.ListHooks(context.Background(), *globals.GITHUBUSER.Login, repo.Name, nil)
+		}
+
+		if !found {
+			fmt.Println("adding webhook to " + *globals.GITHUBUSER.Login + "/" + repo.Name)
+			_, _, err := g.Repositories.CreateHook(context.Background(), *globals.GITHUBUSER.Login, repo.Name, &github.Hook{
+				Name:   github.String("web"),
+				Active: github.Bool(true),
+				Config: map[string]interface{}{
+					"url":          github.String(cfg.Hook.Url),
+					"content_type": github.String(cfg.Hook.ContentType),
+					"secret":       github.String(cfg.Hook.Secret),
+					"ssl_verify":   github.String(cfg.Hook.Secret),
+				},
+			})
 			if err != nil {
 				log.Fatal(err)
 			}
-			if repo.UseWebhook {
+		}
+	}
+}
 
-				found := false
-				for _, hook := range hooks {
-					if hook.Config["url"] == cfg.Hook.Url {
-						found = true
-						break
-					}
-				}
-
-				if !found {
-
-					_, _, err := g.Repositories.CreateHook(context.Background(), *globals.GITHUBUSER.Login, repo.Name, &github.Hook{
-						Name:   github.String("web"),
-						Active: github.Bool(true),
-						Config: map[string]interface{}{
-							"url":          github.String(cfg.Hook.Url),
-							"content_type": github.String(cfg.Hook.ContentType),
-							"secret":       github.String(cfg.Hook.Secret),
-							"ssl_verify":   github.String(cfg.Hook.Secret),
-						},
-					})
-					if err != nil {
-						log.Fatal(err)
-					}
+func addCollaborators(repo globals.Repo, g *github.Client) {
+	if len(repo.Collaborators) > 0 {
+		directCollaborators, _, err := g.Repositories.ListCollaborators(context.Background(), *globals.GITHUBUSER.Login, repo.Name, &github.ListCollaboratorsOptions{Affiliation: "direct"})
+		if err != nil {
+			log.Fatal(err)
+		}
+		for _, collaborator := range repo.Collaborators {
+			if !isInDirectCollaborators(directCollaborators, collaborator.Username) {
+				fmt.Println("adding " + collaborator.Username + " as a collaborator to " + *globals.GITHUBUSER.Login + "/" + repo.Name)
+				_, _, err := g.Repositories.AddCollaborator(context.Background(), *globals.GITHUBUSER.Login, repo.Name, collaborator.Username, &github.RepositoryAddCollaboratorOptions{Permission: collaborator.Permission})
+				if err != nil {
+					log.Fatal(err)
 				}
 			}
-
 		}
 	}
 }
@@ -95,4 +127,13 @@ func GetUser(g *github.Client) {
 		log.Fatal(err)
 	}
 	globals.GITHUBUSER = user
+}
+
+func isInDirectCollaborators(collaborators []*github.User, collaborator string) bool {
+	for _, c := range collaborators {
+		if c.GetLogin() == collaborator {
+			return true
+		}
+	}
+	return false
 }

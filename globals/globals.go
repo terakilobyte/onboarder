@@ -18,9 +18,10 @@ type Org struct {
 }
 
 type Repo struct {
-	Name            string `json:"name"`
-	UseWebhook      bool   `json:"useWebhook"`
-	SetSubscription bool   `json:"setSubscription"`
+	Name            string         `json:"name"`
+	UseWebhook      bool           `json:"useWebhook"`
+	SetSubscription bool           `json:"setSubscription"`
+	Collaborators   []Collaborator `json:"collaborators"`
 }
 
 type Webhook struct {
@@ -28,4 +29,8 @@ type Webhook struct {
 	ContentType string `json:"content_type"`
 	Secret      string `json:"secret"`
 	SSLVerify   string `json:"ssl_verify"`
+}
+type Collaborator struct {
+	Username   string `json:"username"`
+	Permission string `json:"permission"`
 }
