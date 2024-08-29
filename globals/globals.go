@@ -28,7 +28,6 @@ type Webhook struct {
 	Url         string `json:"url"`
 	ContentType string `json:"content_type"`
 	Secret      string `json:"secret"`
-	SSLVerify   string `json:"ssl_verify"`
 }
 type Collaborator struct {
 	Username   string `json:"username"`

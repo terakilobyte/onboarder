@@ -76,7 +76,6 @@ func addHooks(g *github.Client, repo globals.Repo, cfg *globals.Config) {
 					"url":          github.String(cfg.Hook.Url),
 					"content_type": github.String(cfg.Hook.ContentType),
 					"secret":       github.String(cfg.Hook.Secret),
-					"ssl_verify":   github.String(cfg.Hook.Secret),
 				},
 			})
 			if err != nil {
